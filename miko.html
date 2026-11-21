@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>War Battle</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #111827;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+}
+h1 { color: #facc15; }
+#game {
+  width: 340px;
+  height: 480px;
+  margin: auto;
+  background: linear-gradient(#263c35,#17251f);
+  border: 4px solid #64748b;
+  position: relative;
+  overflow: hidden;
+}
+#player {
+  position: absolute;
+  bottom: 20px;
+  left: 150px;
+  font-size: 35px;
+}
+.enemy, .bullet {
+  position: absolute;
+  font-size: 28px;
+}
+.bullet { color: yellow; }
+#info { padding: 10px; }
+button {
+  background: #eab308;
+  border: none;
+  padding: 12px 20px;
+  margin: 5px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+</style>
+</head>
+<body>
+
+<h1>⚔️ WAR BATTLE</h1>
+<div id="info">
+  ❤️ Nyawa: <span id="hp">3</span>
+  | ⭐ Skor: <span id="score">0</span>
+</div>
+
+<div id="game">
+  <div id="player">🪖</div>
+</div>
+
+<div class="controls">
+  <button onclick="move(-25)">⬅️ KIRI</button>
+  <button onclick="shoot()">🔫 TEMBAK</button>
+  <button onclick="move(25)">KANAN ➡️</button>
+</div>
+<button onclick="start()">▶ MULAI ULANG</button>
+
+<script>
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+
+let x = 150;
+let hp = 3;
+let score = 0;
+let running = false;
+let enemies = [];
+let bullets = [];
+let timer;
+
+function move(n) {
+  if (!running) return;
+  x = Math.max(0, Math.min(300, x+n));
+  player.style.left = x+"px";
+}
+
+function shoot() {
+  if (!running) return;
+  let b = document.createElement("div");
+  b.className = "bullet";
+  b.innerHTML = "🔸";
+  b.style.left = (x+8)+"px";
+  b.style.bottom = "60px";
+  game.appendChild(b);
+  bullets.push(b);
+}
+
+function spawnEnemy() {
+  if (!running) return;
+  let e = document.createElement("div");
+  e.className = "enemy";
+  e.innerHTML = "💀";
+  e.style.left = Math.random()*300+"px";
+  e.style.top = "0px";
+  game.appendChild(e);
+  enemies.push(e);
+}
+
+function start() {
+  clearInterval(timer);
+  enemies.forEach(e=>e.remove());
+  bullets.forEach(b=>b.remove());
+  enemies=[];
+  bullets=[];
+  hp=3;
+  score=0;
+  x=150;
+  player.style.left=x+"px";
+  document.getElementById("hp").innerText=hp;
+  document.getElementById("score").innerText=score;
+  running=true;
+  timer=setInterval(spawnEnemy,1200);
+}
+
+function update() {
+  if (!running) return;
+
+  bullets.forEach((b,bi)=>{
+    let y=parseInt(b.style.bottom);
+    b.style.bottom=(y+8)+"px";
+    if(y>480) {
+      b.remove();
+      bullets.splice(bi,1);
+    }
+  });
+
+  enemies.forEach((e,ei)=>{
+    e.style.top=(e.offsetTop+3)+"px";
+
+    bullets.forEach((b,bi)=>{
+      if(Math.abs(e.offsetLeft-b.offsetLeft)<25 &&
+         Math.abs(e.offsetTop-(480-parseInt(b.style.bottom)))<35) {
+        e.remove();
+        b.remove();
+        enemies.splice(ei,1);
+        bullets.splice(bi,1);
+        score++;
+        document.getElementById("score").innerText=score;
+      }
+    });
+
+    if(e.offsetTop>440) {
+      e.remove();
+      enemies.splice(ei,1);
+      hp--;
+      document.getElementById("hp").innerText=hp;
+      if(hp<=0) {
+        running=false;
+        clearInterval(timer);
+        alert("GAME OVER! Skor kamu: "+score);
+      }
+    }
+  });
+}
+
+setInterval(update,30);
+</script>
+</body>
+</html>
